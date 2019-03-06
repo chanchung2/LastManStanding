@@ -12,7 +12,7 @@ public class MainCamera : MonoBehaviour
     [SerializeField] private float yMinLimit;
     [SerializeField] private float yMaxLimit;
 
-    [SerializeField] private Transform player;
+    public Transform player;
 
     private float x; // 카메라의 초기값.
     private float y;
@@ -28,9 +28,12 @@ public class MainCamera : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void LateUpdate()
     {
-
+        if (player == null)
+        {
+            return;
+        }
         x += Input.GetAxis("Mouse X") * xSpeed * Time.deltaTime;
         y -= Input.GetAxis("Mouse Y") * ySpeed * Time.deltaTime;
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : Photon.PunBehaviour
 {
     [SerializeField] private float speed;
     [SerializeField] private float rotationSpeed;
@@ -14,6 +14,8 @@ public class PlayerController : MonoBehaviour
     private Vector3 vertical;
     private Vector3 movement;
     private Quaternion quaternion;
+    private Vector3 currPos = Vector3.zero;
+    private Quaternion currRot = Quaternion.identity;
 
     [SerializeField] private float range; // 공격 사거리
     [SerializeField] private LayerMask layerMask;
@@ -24,16 +26,33 @@ public class PlayerController : MonoBehaviour
 
     private Rigidbody rigidbody;
     private BoxCollider boxCollider;
-    [SerializeField] private Animator animator;
-    [SerializeField] private Transform camera;
+    private Transform camera;
+    private Animator animator;
 
     private RaycastHit hitInfo;
+    private PhotonView pv = null;
+
+    private void Awake()
+    {
+        pv = GetComponent<PhotonView>();
+        pv.synchronization = ViewSynchronization.UnreliableOnChange;   // 데이터 전송타입
+        pv.ObservedComponents[0] = this;  // 스크립트 연결
+        currPos = transform.position;
+        currRot = transform.rotation;
+
+        if (pv.isMine)
+        {
+            camera = Camera.main.transform;
+            Camera.main.GetComponent<MainCamera>().player = transform.GetChild(1).GetComponent<Transform>(); // CameraPos;
+        }
+    }
 
     // Start is called before the first frame update
     void Start()
     {
         rigidbody = GetComponent<Rigidbody>();
         boxCollider = GetComponent<BoxCollider>();
+        animator = GetComponent<Animator>();
     }
 
     // Update is called once per frame
@@ -48,87 +67,98 @@ public class PlayerController : MonoBehaviour
 
     private void Move()
     {
-        h = Input.GetAxis("Horizontal");
-        v = Input.GetAxis("Vertical");
+        if (pv.isMine)
+        {
+            h = Input.GetAxis("Horizontal");
+            v = Input.GetAxis("Vertical");
 
-        if (h != 0 || v != 0)
-        {
-            isMove = true;
-            quaternion.eulerAngles = new Vector3(0, camera.rotation.eulerAngles.y, 0);
-        }
-        else
-            isMove = false;
+            if (h != 0 || v != 0)
+            {
+                isMove = true;
+                quaternion.eulerAngles = new Vector3(0, camera.rotation.eulerAngles.y, 0);
+            }
+            else
+                isMove = false;
 
-        if (v > 0)
-        {
-            vertical = camera.transform.forward;
-        }
-        else if (v < 0)
-        {
-            vertical = -camera.transform.forward;
-            quaternion.eulerAngles += new Vector3(0, 180, 0);
-        }
-        else
-        {
-            vertical = Vector3.zero;
-        }
-
-        if (h > 0)
-        {
-            horizontal = camera.transform.right;
             if (v > 0)
             {
-                quaternion.eulerAngles += new Vector3(0, 45, 0);
+                vertical = camera.transform.forward;
             }
             else if (v < 0)
             {
-                quaternion.eulerAngles += new Vector3(0, 315, 0);
+                vertical = -camera.transform.forward;
+                quaternion.eulerAngles += new Vector3(0, 180, 0);
             }
             else
             {
-                quaternion.eulerAngles += new Vector3(0, 90, 0);
+                vertical = Vector3.zero;
             }
-        }
-        else if (h < 0)
-        {
-            horizontal = -camera.transform.right;
-            if (v > 0)
+
+            if (h > 0)
             {
-                quaternion.eulerAngles += new Vector3(0, 315, 0);
+                horizontal = camera.transform.right;
+                if (v > 0)
+                {
+                    quaternion.eulerAngles += new Vector3(0, 45, 0);
+                }
+                else if (v < 0)
+                {
+                    quaternion.eulerAngles += new Vector3(0, 315, 0);
+                }
+                else
+                {
+                    quaternion.eulerAngles += new Vector3(0, 90, 0);
+                }
             }
-            else if (v < 0)
+            else if (h < 0)
             {
-                quaternion.eulerAngles += new Vector3(0, 45, 0);
+                horizontal = -camera.transform.right;
+                if (v > 0)
+                {
+                    quaternion.eulerAngles += new Vector3(0, 315, 0);
+                }
+                else if (v < 0)
+                {
+                    quaternion.eulerAngles += new Vector3(0, 45, 0);
+                }
+                else
+                {
+                    quaternion.eulerAngles += new Vector3(0, 270, 0);
+                }
             }
             else
             {
-                quaternion.eulerAngles += new Vector3(0, 270, 0);
+                horizontal = Vector3.zero;
             }
+
+            animator.SetBool("Move", isMove);
+            movement = (horizontal + vertical) * speed * Time.deltaTime;
+            rigidbody.MovePosition(transform.position + movement);
+
+            transform.rotation = Quaternion.Slerp(transform.rotation, quaternion, rotationSpeed * Time.deltaTime);
         }
-        else
+        else  // 원격 플레이어 수신 받은 위치
         {
-            horizontal = Vector3.zero;
+            rigidbody.MovePosition(transform.position + (currPos - transform.position) * speed * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, currRot, rotationSpeed * Time.deltaTime);
         }
-
-        animator.SetBool("Move", isMove);
-        movement = (horizontal + vertical) * speed * Time.deltaTime;
-        rigidbody.MovePosition(transform.position + movement);
-
-        transform.rotation = Quaternion.Slerp(transform.rotation, quaternion, rotationSpeed * Time.deltaTime);
     }
 
     private void TryAttack()
     {
-        if (!animator.GetCurrentAnimatorStateInfo(0).IsName("attack"))
+        if (pv.isMine)
         {
-            isAttack = false;
-        }
-
-        if (!isAttack)
-        {
-            if (Input.GetButton("Fire1"))
+            if (!animator.GetCurrentAnimatorStateInfo(0).IsName("attack"))
             {
-                Attack();
+                isAttack = false;
+            }
+
+            if (!isAttack)
+            {
+                if (Input.GetButton("Fire1"))
+                {
+                    Attack();
+                }
             }
         }
     }
@@ -140,15 +170,29 @@ public class PlayerController : MonoBehaviour
 
         if (Physics.Raycast(transform.position, transform.forward, out hitInfo, range, layerMask))
         {
-            Debug.Log(hitInfo.transform.name);
-            hitInfo.transform.GetComponent<PlayerController>().Die();
+            hitInfo.transform.GetComponent<PlayerController>().pv.RPC("Die", PhotonTargets.All, null);
         }
     }
 
+    [PunRPC]
     private void Die()
     {
-        isLife = false;
         animator.SetBool("Die", true);
+        isLife = false;
+    }
+
+    void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.isWriting)
+        {
+            stream.SendNext(transform.position);
+            stream.SendNext(transform.rotation);
+        }
+        else // 원격 플레이어 위치 정보 수신
+        {
+            currPos = (Vector3)stream.ReceiveNext();
+            currRot = (Quaternion)stream.ReceiveNext();
+        }
     }
 }
 
