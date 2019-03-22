@@ -34,6 +34,15 @@ public class PlayerController : Photon.PunBehaviour
 
     private void Awake()
     {
+    }
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        rigidbody = GetComponent<Rigidbody>();
+        boxCollider = GetComponent<BoxCollider>();
+        animator = GetComponent<Animator>();
+
         pv = GetComponent<PhotonView>();
         pv.synchronization = ViewSynchronization.UnreliableOnChange;   // 데이터 전송타입
         pv.ObservedComponents[0] = this;  // 스크립트 연결
@@ -45,14 +54,6 @@ public class PlayerController : Photon.PunBehaviour
             camera = Camera.main.transform;
             Camera.main.GetComponent<MainCamera>().player = transform.GetChild(1).GetComponent<Transform>(); // CameraPos;
         }
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        rigidbody = GetComponent<Rigidbody>();
-        boxCollider = GetComponent<BoxCollider>();
-        animator = GetComponent<Animator>();
     }
 
     // Update is called once per frame
@@ -134,16 +135,20 @@ public class PlayerController : Photon.PunBehaviour
                 }
 
                 animator.SetBool("Move", isMove);
-                movement = (horizontal + vertical) * speed * Time.deltaTime;
-                rigidbody.MovePosition(transform.position + movement);
+                movement = (horizontal + vertical) * speed * Time.smoothDeltaTime;
 
-                transform.rotation = Quaternion.Slerp(transform.rotation, quaternion, rotationSpeed * Time.deltaTime);
+                rigidbody.MovePosition(transform.position + movement);
+                //transform.rotation = Quaternion.RotateTowards(transform.rotation, quaternion, rotationSpeed * Time.smoothDeltaTime);
+                transform.rotation = Quaternion.Slerp(transform.rotation, quaternion, rotationSpeed * Time.smoothDeltaTime);
             }
         }
         else  // 원격 플레이어 수신 받은 위치
         {
-            rigidbody.MovePosition(transform.position + (currPos - transform.position) * speed * Time.deltaTime);
-            transform.rotation = Quaternion.Slerp(transform.rotation, currRot, rotationSpeed * Time.deltaTime);
+            //Debug.Log(currPos);
+            transform.position = Vector3.Lerp(transform.position, currPos, speed * Time.smoothDeltaTime);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, currRot, 500f * Time.smoothDeltaTime);
+            //rigidbody.MovePosition(transform.position + (currPos - transform.position) * speed * Time.smoothDeltaTime);
+             //transform.rotation = Quaternion.Slerp(transform.rotation, currRot, rotationSpeed * Time.smoothDeltaTime);
         }
     }
 
@@ -161,8 +166,10 @@ public class PlayerController : Photon.PunBehaviour
         }
     }
 
+    [PunRPC]
     private void Attack()
     {
+        Debug.Log("ang");
         animator.SetTrigger("Attack");
 
         if (Physics.Raycast(transform.position, transform.forward, out hitInfo, range, layerMask))
@@ -182,9 +189,9 @@ public class PlayerController : Photon.PunBehaviour
     {
         isAttack = true;
 
-        Attack();
+        pv.RPC("Attack", PhotonTargets.All, null);
 
-        yield return new WaitForSeconds(1.0f);
+        yield return new WaitForSeconds(1.1f);
 
         isAttack = false;
     }

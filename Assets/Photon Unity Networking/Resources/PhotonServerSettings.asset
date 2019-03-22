@@ -44,4 +44,10 @@ MonoBehaviour:
   - RequestForPickupTimes
   - TaggedPlayer
   - Die
+  - Attack
+  - RandomAction
+  - TryRandomAction
+  - UserListUpdate
+  - RPC_LoadedGameScene
+  - RPC_LoadGameOthers
   DisableAutoOpenWizard: 1
