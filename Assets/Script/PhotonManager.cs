@@ -18,6 +18,9 @@ public class PhotonManager : Photon.PunBehaviour
     [SerializeField] GameObject userLayout;
     [SerializeField] GameObject userPrefab;
     [SerializeField] GameObject startButton;
+    [SerializeField] InputField inputNPC;
+
+    [SerializeField] GameObject npcUI;
 
     private bool isReady = false;
 
@@ -68,8 +71,6 @@ public class PhotonManager : Photon.PunBehaviour
     {
         //Debug.Log("Enter Room");
 
-        PlayerInfo.playerID = PhotonNetwork.player.ID;
-
         roomUI.SetActive(false);
         joinLobbyUI.SetActive(true);
 
@@ -94,6 +95,7 @@ public class PhotonManager : Photon.PunBehaviour
         PhotonNetwork.player.name = inputID.text;
 
         startButton.gameObject.SetActive(false);
+        npcUI.SetActive(false);
         PhotonNetwork.JoinRoom(_roomName);
     }
 
@@ -147,6 +149,9 @@ public class PhotonManager : Photon.PunBehaviour
 
     public void OnClickStartButton()
     {
+        RoomMakeInfo.instance.playerCount = PhotonNetwork.countOfPlayers;
+        RoomMakeInfo.instance.npcCount = int.Parse(inputNPC.text);
+
         PhotonNetwork.LoadLevel("Main");
     }
 

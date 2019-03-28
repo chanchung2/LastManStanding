@@ -17,6 +17,9 @@ public class AIController : MonoBehaviour
     [SerializeField] private float rotationSpeed;
     private float moveTime = 0;
 
+    private Vector3 currPos;
+    private Quaternion currRot;
+
     [SerializeField] private Animator animator;
     private NavMeshAgent navMeshAgent;
 
@@ -30,10 +33,12 @@ public class AIController : MonoBehaviour
 
     private void Update()
     {
-        TryRandomAction();
+        if(pv.isMine)
+        {
+            TryRandomAction();
+        }
     }
 
-    [PunRPC]
     private void TryRandomAction()
     {
         if (!isAction)
@@ -46,7 +51,7 @@ public class AIController : MonoBehaviour
     {
         isAction = true;
 
-        yield return new WaitForSeconds(Random.Range(0.0f, 1.0f));
+        yield return new WaitForSeconds(Random.Range(0.0f, 5.0f));
 
         RandomAction();
     }
@@ -74,6 +79,7 @@ public class AIController : MonoBehaviour
         Debug.Log("Wait");
         isAction = false;
     }
+
     private void Move()
     {
         StartCoroutine(MoveCoroutine());
@@ -86,24 +92,31 @@ public class AIController : MonoBehaviour
 
     IEnumerator MoveCoroutine()
     {
-        randomPos = new Vector3(Random.Range(-10.0f, 10.0f), 0,Random.Range(-10.0f, 10.0f));
+        Vector3 targetPos;
+
+        randomPos = new Vector3(Random.Range(-1.0f, 1.0f), 0,Random.Range(-1f, 1f));
         animator.SetBool("Move", true);
         navMeshAgent.speed = speed;
 
-        Debug.Log(randomPos);
+        targetPos = transform.position + randomPos * 10;
+
+        //Debug.Log(randomPos);
 
         while (moveTime < Random.Range(6.0f, 10.0f))
         {
-            Debug.Log(Vector3.Distance(transform.position, randomPos));
             moveTime += Time.deltaTime;
-            navMeshAgent.SetDestination(transform.position + randomPos);
-
+            navMeshAgent.SetDestination(transform.position + randomPos * 10);
+            if (Vector3.Distance(targetPos, transform.position) < 1)
+            {
+                Debug.Log("break");
+                break;
+            }
+            yield return null;
             //transform.position = Vector3.MoveTowards(transform.position, randomPos, speed * Time.smoothDeltaTime);
             //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(randomPos - transform.position), rotationSpeed * Time.smoothDeltaTime);
-
-            yield return null;
         }
 
+        navMeshAgent.speed = 0;
         moveTime = 0;
         animator.SetBool("Move", false);
         isAction = false;

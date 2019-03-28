@@ -41,12 +41,12 @@ GameObject:
   m_Component:
   - component: {fileID: 744}
   - component: {fileID: 1251}
+  - component: {fileID: 1370}
   - component: {fileID: 1369}
   - component: {fileID: 1368}
-  - component: {fileID: 1367}
-  - component: {fileID: 1267}
-  - component: {fileID: 1370}
-  - component: {fileID: 1280}
+  - component: {fileID: 1268}
+  - component: {fileID: 1371}
+  - component: {fileID: 1281}
   m_Layer: 8
   m_Name: Model_Player
   m_TagString: Player
@@ -86,7 +86,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
---- !u!114 &1369
+--- !u!114 &1370
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -104,7 +104,7 @@ MonoBehaviour:
   layerMask:
     serializedVersion: 2
     m_Bits: 256
---- !u!114 &1368
+--- !u!114 &1369
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -120,7 +120,7 @@ MonoBehaviour:
     SynchronizeEnabled: 1
     TeleportEnabled: 1
     TeleportIfDistanceGreaterThan: 1
-    InterpolateOption: 3
+    InterpolateOption: 1
     InterpolateMoveTowardsSpeed: 5
     InterpolateLerpSpeed: 50
     InterpolateMoveTowardsAcceleration: 2
@@ -182,7 +182,7 @@ MonoBehaviour:
     InterpolateOption: 0
     InterpolateMoveTowardsSpeed: 1
     InterpolateLerpSpeed: 0
---- !u!114 &1367
+--- !u!114 &1368
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -203,14 +203,14 @@ MonoBehaviour:
   onSerializeRigidBodyOption: 2
   ownershipTransfer: 0
   ObservedComponents:
-  - {fileID: 1368}
-  - {fileID: 1370}
+  - {fileID: 1369}
+  - {fileID: 1371}
   ObservedComponentsFoldoutOpen: 1
   viewIdField: 0
   instantiationId: -1
   currentMasterID: -1
   isRuntimeInstantiated: 0
---- !u!95 &1267
+--- !u!95 &1268
 Animator:
   serializedVersion: 3
   m_ObjectHideFlags: 0
@@ -229,7 +229,7 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
---- !u!114 &1370
+--- !u!114 &1371
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -256,7 +256,7 @@ MonoBehaviour:
   m_SynchronizeLayers:
   - SynchronizeType: 2
     LayerIndex: 0
---- !u!136 &1280
+--- !u!136 &1281
 CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

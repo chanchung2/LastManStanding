@@ -32,10 +32,6 @@ public class PlayerController : Photon.PunBehaviour
     private RaycastHit hitInfo;
     private PhotonView pv = null;
 
-    private void Awake()
-    {
-    }
-
     // Start is called before the first frame update
     void Start()
     {
